@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Модуль первоначальной обработки, принимающий и обрабатывающий входные
+# данные
+# Входные данные:
+# -p Тип пакета. По умолчанию стандартный для системы.
+# -d Место назначения сборки пакета. По умолчанию домашний каталог
+# пользователя
+NEARG=1 # Не хватает аргумента
+INVPT=2 # Недопустимый формат пакета
+FNF=3   # Файл не найден
+Args[1]=-1 # Исходный файл
+Args[2]=$Home # Место сборки
+Args[3]=0 # Тип пакета
+if [[  "$#" -lt 1 ]]
+then echo "Command format: `basename $0`[-p PACKET_TYPE][-d DESTINATION] FileName"
+     exit $NEARG
+fi
+Flag=0
+Index=1
+n=1
+for arg in "$@" 
+do
+
+ if [ "$Flag" == "2" ]         
+ then Flag=0
+      if [ "$arg" == "RPM" -o "$arg" == "rpm" -o "$arg" == "Rpm" ]
+      then Args[2]=0
+      else echo "Invalid package format '$arg'"
+           exit $INVPT 
+      fi 
+ fi
+ if [ "$Flag" == "3" ]         
+ then Flag=0
+      if [[ -e "$arg" && -d "$arg" ]]
+      then Args[2]=$arg
+      else echo "Destination directory not found. Reset to default '$HOME'"
+      fi 
+ fi
+
+ if [ "$arg" == "-p" -a "$Flag" == "0" -a "$Index" != "$#" ] 
+ then      Flag=2
+ fi
+ if [ "$arg" == "-d" -a "$Flag" == "0" -a "$Index" != "$#" ]
+ then      Flag=3
+ fi
+
+ if [ "$Index" == "$#" -a "$Flag" != "0" ]
+ then echo "Command format: `basename $0`[-p PACKET_TYPE][-d DESTINATION]  FileName"
+     exit $NEARG
+ elif [ "$Index" == "$#" ]
+ then Args[1]=$arg
+ fi
+ let "Index+=1"
+done
+
+
+if [ ! -e "${Args[1]}" ]
+then echo "File '${Args[1]}' not found"
+     exit $FNF
+fi
+if [ "${Args[3]}" == "0" ]
+then  exec "bash Pacman_RPM '${Args[1]}' '${Args[2]}'"
+fi

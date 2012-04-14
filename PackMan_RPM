@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Модуль отвечающий за сборку RPM пакетов
+
+UCALL=1 # Вызов напрямую из командной оболочки
+
+if [ "$SHLVL" -le "2" ]
+then echo "This script should not be called directly by user. Call PackMan instead."
+     exit $UCALL
+fi
+
+if [ ${1} = *.spec ]
+      then echo "Build form .spec file"
+           rpmbuild --buildroot . -ba ${Args[1]}
+      elif [ ${Args[1]} = *.tar ]
+      then echo "Build form .tar file"
+           rpmbuild --buildroot . -ta ${Args[1]}
+      elif [ ${Args[1]} = *.rpm ]
+      then echo "Rebuild from .rpm file"
+           rpmbuild --buildroot . --rebuild ${Args[1]} 
+      else echo "Incorrect file!"
+      fi
